@@ -1,0 +1,743 @@
+{
+  "info": {
+    "name": "AutoRia API",
+    "description": "AutoRia Clone — REST API.\n\nПеред запуском:\n1. Запусти сервер: npm run dev\n2. Виконай seeds: npm run seed\n3. Базовий URL: http://localhost:3000/api\n\n## Тестові credentials\n| Role    | Email                | Password     | Як створюється                     |\n|---------|----------------------|--------------|------------------------------------|\n| Admin   | admin@test.com       | admin123     | npm run seed                       |\n| Seller  | seller@test.com      | password123  | 1. Auth / Register Seller          |\n| Buyer   | buyer@test.com       | password123  | 1. Auth / Register Buyer           |\n| Manager | manager@test.com     | manager123   | 5. Users / Create Manager (Admin)  |\n\n## Послідовність запитів\n1.  Auth / Register Seller               → зберігає {{seller_id}}\n2.  Auth / Register Buyer\n3.  Auth / Login as Seller               → зберігає {{token}}\n4.  Auth / Login as Admin                → зберігає {{admin_token}}\n5.  Cars / Get All Brands\n6.  Currency / Get Rates\n7.  Listings / Create Listing (Seller)   → зберігає {{listing_id}}\n8.  Listings / Create Listing with Profanity → статус PENDING\n9.  Listings / Get All Listings\n10. Listings / Get My Listings\n11. Users / Create Manager (Admin)       → створює manager@test.com\n12. Auth / Login as Manager              → зберігає {{manager_token}}\n13. Listings / Get Pending Listings\n14. Listings / Activate Listing\n15. Users / Upgrade to Premium\n16. Statistics / Get Listing Stats       → тільки для Premium",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000/api", "description": "Base API URL" },
+    { "key": "token", "value": "", "description": "Seller JWT — автоматично зберігається після Login as Seller" },
+    { "key": "admin_token", "value": "", "description": "Admin JWT — автоматично зберігається після Login as Admin" },
+    { "key": "manager_token", "value": "", "description": "Manager JWT — автоматично зберігається після Login as Manager" },
+    { "key": "listing_id", "value": "1", "description": "ID оголошення — автоматично зберігається після Create Listing" },
+    { "key": "seller_id", "value": "1", "description": "ID продавця — автоматично зберігається після Register Seller" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "description": "Крок 1: Реєстрація та авторизація.\nПорядок: Register Seller → Register Buyer → Login as Seller → Login as Admin",
+      "item": [
+        {
+          "name": "Register Seller",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.data && r.data.id) {",
+                  "    pm.collectionVariables.set('seller_id', r.data.id);",
+                  "    console.log('seller_id saved:', r.data.id);",
+                  "}",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has data.id', () => pm.expect(r.data).to.have.property('id'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ivan\",\n  \"lastName\": \"Kovalenko\",\n  \"email\": \"seller@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"seller\"\n}"
+            },
+            "description": "Реєструє продавця. Автоматично зберігає {{seller_id}}.\nВідповідь: { status: 201, data: { id, firstName, lastName, email, role, accountType, ... } }"
+          }
+        },
+        {
+          "name": "Register Buyer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Role is buyer', () => pm.expect(pm.response.json().data.role).to.eql('buyer'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Olena\",\n  \"lastName\": \"Petrenko\",\n  \"email\": \"buyer@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"buyer\"\n}"
+            },
+            "description": "Реєструє покупця."
+          }
+        },
+        {
+          "name": "Login as Seller",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.data && r.data.token) {",
+                  "    pm.collectionVariables.set('token', r.data.token);",
+                  "    console.log('token saved');",
+                  "}",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has token', () => pm.expect(r.data).to.have.property('token'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"seller@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Логін продавця. Автоматично зберігає {{token}}.\nВідповідь: { status: 200, data: { token, user: {...} } }"
+          }
+        },
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.data && r.data.token) {",
+                  "    pm.collectionVariables.set('admin_token', r.data.token);",
+                  "    console.log('admin_token saved');",
+                  "}",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Role is admin', () => pm.expect(r.data.user.role).to.eql('admin'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "description": "Логін адміна. Автоматично зберігає {{admin_token}}.\nAdmin створюється через: npm run seed"
+          }
+        },
+        {
+          "name": "Login as Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.data && r.data.token) {",
+                  "    pm.collectionVariables.set('manager_token', r.data.token);",
+                  "    console.log('manager_token saved');",
+                  "}",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Role is manager', () => pm.expect(r.data.user.role).to.eql('manager'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@test.com\",\n  \"password\": \"manager123\"\n}"
+            },
+            "description": "Логін менеджера. Автоматично зберігає {{manager_token}}.\nСпочатку виконай: 5. Users / Create Manager (Admin)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cars",
+      "description": "Крок 2: Перегляд марок та моделей авто.\nПотребує seed даних: npm run seed",
+      "item": [
+        {
+          "name": "Get All Brands",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has brands array', () => pm.expect(pm.response.json().data).to.be.an('array'));",
+                  "pm.test('Has 20 brands', () => pm.expect(pm.response.json().data.length).to.eql(20));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/cars/brands",
+            "description": "Повертає всі марки з моделями. Auth не потрібен.\nПотребує: npm run seed"
+          }
+        },
+        {
+          "name": "Get Models by Brand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has models array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/cars/brands/1/models",
+            "description": "Повертає моделі для бренду ID=1 (Toyota після seed). Зміни ID за потреби."
+          }
+        },
+        {
+          "name": "Request Missing Brand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/cars/brands/request",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandName\": \"Opel\"\n}"
+            },
+            "description": "Продавець надсилає запит на додавання відсутньої марки. Потребує авторизації."
+          }
+        },
+        {
+          "name": "Request Missing Model",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/cars/brands/1/models/request",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelName\": \"Avensis\"\n}"
+            },
+            "description": "Продавець надсилає запит на додавання відсутньої моделі для бренду ID=1."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Currency",
+      "description": "Крок 3: Курси валют UAH/USD/EUR від ПриватБанку.\nКурси оновлюються щодня о 9:00 автоматично.",
+      "item": [
+        {
+          "name": "Get Rates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test('Has USD rate', () => pm.expect(d).to.have.property('USD'));",
+                  "pm.test('Has EUR rate', () => pm.expect(d).to.have.property('EUR'));",
+                  "pm.test('UAH = 1', () => pm.expect(d.UAH).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/currency",
+            "description": "Повертає поточні курси UAH/USD/EUR. Кешується в Redis."
+          }
+        },
+        {
+          "name": "Refresh Rates (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/currency/refresh",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "description": "Примусово оновлює курси з ПриватБанку. Тільки для admin."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Listings",
+      "description": "Крок 4: Створення та управління оголошеннями.\nПродавець повинен бути авторизований ({{token}}).\n\nДля manager-дій (pending/activate/deactivate) спочатку:\n  5. Users / Create Manager → 1. Auth / Login as Manager",
+      "item": [
+        {
+          "name": "Create Listing (Seller)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.data && r.data.id) {",
+                  "    pm.collectionVariables.set('listing_id', r.data.id);",
+                  "    console.log('listing_id saved:', r.data.id);",
+                  "}",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Status is active', () => pm.expect(r.data.status).to.eql('active'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/listings",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Toyota Camry 2020 у відмінному стані\",\n  \"description\": \"Авто в чудовому стані, один власник, сервісна книжка\",\n  \"price\": 25000,\n  \"currency\": \"USD\",\n  \"region\": \"Kyiv\",\n  \"brandId\": 1,\n  \"modelId\": 1,\n  \"year\": 2020,\n  \"mileage\": 45000\n}"
+            },
+            "description": "Створює оголошення як продавець. Чистий заголовок → статус ACTIVE.\nАвтоматично зберігає {{listing_id}}.\nВідповідь: { status: 201, message: \"...\", data: { id, title, price, priceUAH, priceUSD, priceEUR, usdRate, eurRate, status: 'active', ... } }"
+          }
+        },
+        {
+          "name": "Create Listing with Profanity (test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Status is pending', () => pm.expect(r.data.status).to.eql('pending'));",
+                  "pm.test('Message mentions suspicious content', () => pm.expect(r.message).to.include('suspicious'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/listings",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Продам авто fuck cheap\",\n  \"description\": \"Нормальне авто, хороший стан\",\n  \"price\": 10000,\n  \"currency\": \"USD\",\n  \"region\": \"Lviv\",\n  \"brandId\": 2,\n  \"modelId\": 6,\n  \"year\": 2018,\n  \"mileage\": 80000\n}"
+            },
+            "description": "Створює оголошення з нецензурним словом → статус PENDING.\nПісля 3 невдалих редагувань → статус INACTIVE, email менеджеру."
+          }
+        },
+        {
+          "name": "Get All Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has data array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/listings?region=Kyiv",
+              "host": ["{{base_url}}"],
+              "path": ["listings"],
+              "query": [
+                { "key": "brandId", "value": "1", "disabled": true, "description": "Фільтр по бренду" },
+                { "key": "modelId", "value": "1", "disabled": true, "description": "Фільтр по моделі" },
+                { "key": "region", "value": "Kyiv", "disabled": false, "description": "Фільтр по регіону" },
+                { "key": "minPrice", "value": "5000", "disabled": true, "description": "Мінімальна ціна (UAH)" },
+                { "key": "maxPrice", "value": "30000", "disabled": true, "description": "Максимальна ціна (UAH)" }
+              ]
+            },
+            "description": "Повертає всі активні оголошення. Підтримує фільтри: brandId, modelId, region, minPrice, maxPrice."
+          }
+        },
+        {
+          "name": "Get Listing by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has data.id', () => pm.expect(pm.response.json().data).to.have.property('id'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/listings/{{listing_id}}",
+            "description": "Повертає одне оголошення по ID. Також інкрементує лічильник переглядів."
+          }
+        },
+        {
+          "name": "Get My Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has data array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/listings/my",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Повертає всі оголошення поточного продавця."
+          }
+        },
+        {
+          "name": "Update Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has data', () => pm.expect(pm.response.json().data).to.exist);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/listings/{{listing_id}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 24000,\n  \"currency\": \"USD\",\n  \"description\": \"Ціну знижено! Авто в відмінному стані.\"\n}"
+            },
+            "description": "Оновлює оголошення. Якщо listing був PENDING — знову проходить перевірку профанити."
+          }
+        },
+        {
+          "name": "Get Pending Listings (Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has data array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/listings/pending",
+            "header": [{ "key": "Authorization", "value": "Bearer {{manager_token}}" }],
+            "description": "Повертає всі оголошення зі статусом PENDING.\nПотребує {{manager_token}} — виконай спочатку: Create Manager → Login as Manager."
+          }
+        },
+        {
+          "name": "Activate Listing (Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status is active', () => pm.expect(pm.response.json().data.status).to.eql('active'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/listings/{{listing_id}}/activate",
+            "header": [{ "key": "Authorization", "value": "Bearer {{manager_token}}" }],
+            "description": "Менеджер вручну активує PENDING оголошення."
+          }
+        },
+        {
+          "name": "Deactivate Listing (Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status is inactive', () => pm.expect(pm.response.json().data.status).to.eql('inactive'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/listings/{{listing_id}}/deactivate",
+            "header": [{ "key": "Authorization", "value": "Bearer {{manager_token}}" }],
+            "description": "Менеджер деактивує активне оголошення."
+          }
+        },
+        {
+          "name": "Delete Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/listings/{{listing_id}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Видаляє оголошення. Дозволено: власник, менеджер або адмін."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Users",
+      "description": "Крок 5: Управління користувачами.\nПотребує {{admin_token}}.",
+      "item": [
+        {
+          "name": "Get Me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has email', () => pm.expect(pm.response.json().data).to.have.property('email'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Повертає профіль поточного авторизованого користувача."
+          }
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has data array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "description": "Повертає всіх користувачів. Потребує admin або manager токен."
+          }
+        },
+        {
+          "name": "Create Manager (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Role is manager', () => pm.expect(r.data.role).to.eql('manager'));",
+                  "if (r.data && r.data.id) {",
+                  "    console.log('Manager created, id:', r.data.id);",
+                  "    console.log('Now run: 1. Auth / Login as Manager');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/users/manager",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Mykola\",\n  \"lastName\": \"Manager\",\n  \"email\": \"manager@test.com\",\n  \"password\": \"manager123\"\n}"
+            },
+            "description": "Створює акаунт менеджера. Тільки адмін може це робити.\nПісля створення виконай: 1. Auth / Login as Manager → отримаєш {{manager_token}}."
+          }
+        },
+        {
+          "name": "Upgrade to Premium",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('accountType is premium', () => pm.expect(pm.response.json().data.accountType).to.eql('premium'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/users/{{seller_id}}/upgrade",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "description": "Підвищує акаунт до Premium. Premium дає: необмежені оголошення + статистика.\n{{seller_id}} зберігається автоматично після Register Seller."
+          }
+        },
+        {
+          "name": "Ban User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/users/{{seller_id}}/ban",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "description": "Банить користувача. Заблокований юзер не може логінитись."
+          }
+        },
+        {
+          "name": "Unban User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/users/{{seller_id}}/unban",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "description": "Розбанює користувача. Потребує Admin або Manager токен."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Statistics",
+      "description": "Крок 6: Статистика оголошень (тільки для Premium продавців).\n\nПередумови:\n- Виконай 'Upgrade to Premium' для продавця\n- Продавець повинен бути авторизований ({{token}})\n- Переглянь оголошення кілька разів через 'Get Listing by ID'",
+      "item": [
+        {
+          "name": "Get Listing Stats (Premium only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test('Has views', () => pm.expect(d).to.have.property('views'));",
+                  "pm.test('Has views.total', () => pm.expect(d.views).to.have.property('total'));",
+                  "pm.test('Has views.day', () => pm.expect(d.views).to.have.property('day'));",
+                  "pm.test('Has views.week', () => pm.expect(d.views).to.have.property('week'));",
+                  "pm.test('Has views.month', () => pm.expect(d.views).to.have.property('month'));",
+                  "pm.test('Has avgPriceRegion', () => pm.expect(d).to.have.property('avgPriceRegion'));",
+                  "pm.test('Has avgPriceUkraine', () => pm.expect(d).to.have.property('avgPriceUkraine'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/statistics/listings/{{listing_id}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Повертає статистику оголошення для Premium продавця:\n- views: { total, day, week, month }\n- avgPriceRegion: { UAH, USD, EUR, region }\n- avgPriceUkraine: { UAH, USD, EUR }\n\nПотребує Premium акаунт. Виконай 'Upgrade to Premium' спочатку."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Health",
+      "description": "Перевірка стану сервера. Auth не потрібен.",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status is ok', () => pm.expect(pm.response.json().status).to.eql('ok'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/health",
+            "description": "Повертає статус сервера. Використовуй для перевірки що сервер запущений."
+          }
+        }
+      ]
+    }
+  ]
+}
