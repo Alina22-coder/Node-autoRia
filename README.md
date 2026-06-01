@@ -16,7 +16,7 @@ Node.js + TypeScript backend платформи для продажу автом
 
 ## Архітектура
 
-Проєкт побудований за трирівневою архітектурою (як в OktenSchool):
+Проєкт побудований за трирівневою архітектурою:
 
 ```
 Router → Controller → Service → Repository → Database
