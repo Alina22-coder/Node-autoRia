@@ -84,16 +84,6 @@ class ListingService {
             throw ApiError.badRequest("Listing is inactive and cannot be edited");
         }
 
-        if (isOwner) {
-            listing.editCount += 1;
-            if (listing.editCount > MAX_EDIT_ATTEMPTS) {
-                listing.status = ListingStatus.INACTIVE;
-                await listingRepository.save(listing);
-                await this.notifyManager(listing);
-                throw ApiError.badRequest("Max edit attempts reached. Listing is now inactive.");
-            }
-        }
-
         Object.assign(listing, dto);
 
         if (dto.price && dto.currency) {
@@ -104,18 +94,23 @@ class ListingService {
         const hasProfanity = profanityService.check(`${listing.title} ${listing.description}`);
 
         if (hasProfanity) {
-            if (isOwner && listing.editCount >= MAX_EDIT_ATTEMPTS) {
-                listing.status = ListingStatus.INACTIVE;
-                await listingRepository.save(listing);
-                await this.notifyManager(listing);
-                throw ApiError.badRequest(
-                    "Profanity detected. Max attempts reached. Listing is inactive.",
-                );
+            if (isOwner) {
+                listing.editCount += 1;
+                if (listing.editCount >= MAX_EDIT_ATTEMPTS) {
+                    listing.status = ListingStatus.INACTIVE;
+                    await listingRepository.save(listing);
+                    await this.notifyManager(listing);
+                    throw ApiError.badRequest(
+                        "Profanity detected. Max attempts reached. Listing is inactive.",
+                    );
+                }
             }
+            listing.status = ListingStatus.PENDING;
             await listingRepository.save(listing);
             return { listing, hasProfanity: true };
         }
 
+        listing.editCount = 0;
         listing.status = ListingStatus.ACTIVE;
         await listingRepository.save(listing);
         return { listing, hasProfanity: false };

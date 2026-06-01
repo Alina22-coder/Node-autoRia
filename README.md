@@ -189,8 +189,8 @@ REDIS_TLS=true
 | 4 | 1. Auth     | Login as Admin              | Зберігає `{{admin_token}}`            |
 | 5 | 2. Cars     | Get All Brands              | Перевіряє seed дані (20 брендів)      |
 | 6 | 3. Currency | Get Rates                   | Отримує UAH/USD/EUR курси             |
-| 7 | 4. Listings | Create Listing (Seller)     | Створює оголошення, зберігає `{{listing_id}}` |
-| 8 | 4. Listings | Create Listing with Profanity | Оголошення → статус PENDING          |
+| 7 | 4. Listings | Create Listing with Profanity | Оголошення → статус PENDING (ліміт не витрачається) |
+| 8 | 4. Listings | Create Listing (Seller)     | Створює оголошення, зберігає `{{listing_id}}` |
 | 9 | 4. Listings | Get All Listings            | Переглядає публічні оголошення        |
 | 10| 4. Listings | Get My Listings             | Продавець бачить свої                 |
 | 11| 5. Users    | Create Manager (Admin)      | Адмін створює менеджера               |
@@ -199,6 +199,8 @@ REDIS_TLS=true
 | 14| 4. Listings | Activate Listing            | Менеджер активує оголошення           |
 | 15| 5. Users    | Upgrade to Premium          | Адмін підвищує продавця до Premium    |
 | 16| 6. Statistics | Get Listing Stats         | Premium продавець переглядає статистику |
+
+> **Увага:** запити `Deactivate Listing` та `Delete Listing` доступні в колекції для ручного тестування, але запускати їх потрібно **після** кроку 16 — інакше оголошення буде видалено до перевірки статистики.
 
 ---
 

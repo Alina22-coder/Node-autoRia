@@ -63,9 +63,7 @@ class ListingRepository {
         return this.repo
             .createQueryBuilder("listing")
             .where("listing.user_id = :userId", { userId })
-            .andWhere("listing.status IN (:...statuses)", {
-                statuses: [ListingStatus.ACTIVE, ListingStatus.PENDING],
-            })
+            .andWhere("listing.status = :status", { status: ListingStatus.ACTIVE })
             .getCount();
     }
 

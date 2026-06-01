@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 import { appConfig } from "../../config/app.config";
 import { ApiError } from "../errors/api.error";
+import { userRepository } from "../../modules/users/users.repository";
 
 export interface JwtPayload {
     id: number;
@@ -15,11 +16,11 @@ export interface AuthRequest extends Request {
     user?: JwtPayload;
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
     req: AuthRequest,
     _res: Response,
     next: NextFunction,
-): void => {
+): Promise<void> => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -30,7 +31,17 @@ export const authMiddleware = (
 
     try {
         const payload = jwt.verify(token, appConfig.jwt.secret) as JwtPayload;
-        req.user = payload;
+
+        const user = await userRepository.findById(payload.id);
+        if (!user) return next(ApiError.unauthorized("User not found"));
+        if (!user.isActive) return next(ApiError.forbidden("Account is banned"));
+
+        req.user = {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            accountType: user.accountType,
+        };
         next();
     } catch {
         next(ApiError.unauthorized("Invalid or expired token"));

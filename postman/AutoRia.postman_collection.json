@@ -5,12 +5,36 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://localhost:3000/api", "description": "Base API URL" },
-    { "key": "token", "value": "", "description": "Seller JWT — автоматично зберігається після Login as Seller" },
-    { "key": "admin_token", "value": "", "description": "Admin JWT — автоматично зберігається після Login as Admin" },
-    { "key": "manager_token", "value": "", "description": "Manager JWT — автоматично зберігається після Login as Manager" },
-    { "key": "listing_id", "value": "1", "description": "ID оголошення — автоматично зберігається після Create Listing" },
-    { "key": "seller_id", "value": "1", "description": "ID продавця — автоматично зберігається після Register Seller" }
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "description": "Base API URL"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "description": "Seller JWT — автоматично зберігається після Login as Seller"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "description": "Admin JWT — автоматично зберігається після Login as Admin"
+    },
+    {
+      "key": "manager_token",
+      "value": "",
+      "description": "Manager JWT — автоматично зберігається після Login as Manager"
+    },
+    {
+      "key": "listing_id",
+      "value": "1",
+      "description": "ID оголошення — автоматично зберігається після Create Listing"
+    },
+    {
+      "key": "seller_id",
+      "value": "1",
+      "description": "ID продавця — автоматично зберігається після Register Seller"
+    }
   ],
   "item": [
     {
@@ -38,7 +62,12 @@
           "request": {
             "method": "POST",
             "url": "{{base_url}}/auth/register",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"firstName\": \"Ivan\",\n  \"lastName\": \"Kovalenko\",\n  \"email\": \"seller@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"seller\"\n}"
@@ -62,7 +91,12 @@
           "request": {
             "method": "POST",
             "url": "{{base_url}}/auth/register",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"firstName\": \"Olena\",\n  \"lastName\": \"Petrenko\",\n  \"email\": \"buyer@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"buyer\"\n}"
@@ -91,7 +125,12 @@
           "request": {
             "method": "POST",
             "url": "{{base_url}}/auth/login",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"seller@test.com\",\n  \"password\": \"password123\"\n}"
@@ -120,7 +159,12 @@
           "request": {
             "method": "POST",
             "url": "{{base_url}}/auth/login",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"admin123\"\n}"
@@ -149,7 +193,12 @@
           "request": {
             "method": "POST",
             "url": "{{base_url}}/auth/login",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"manager@test.com\",\n  \"password\": \"manager123\"\n}"
@@ -218,8 +267,14 @@
             "method": "POST",
             "url": "{{base_url}}/cars/brands/request",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -244,8 +299,14 @@
             "method": "POST",
             "url": "{{base_url}}/cars/brands/1/models/request",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -297,7 +358,12 @@
           "request": {
             "method": "POST",
             "url": "{{base_url}}/currency/refresh",
-            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
             "description": "Примусово оновлює курси з ПриватБанку. Тільки для admin."
           }
         }
@@ -307,6 +373,41 @@
       "name": "4. Listings",
       "description": "Крок 4: Створення та управління оголошеннями.\nПродавець повинен бути авторизований ({{token}}).\n\nДля manager-дій (pending/activate/deactivate) спочатку:\n  5. Users / Create Manager → 1. Auth / Login as Manager",
       "item": [
+        {
+          "name": "Create Listing with Profanity (test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Status is pending', () => pm.expect(r.data.status).to.eql('pending'));",
+                  "pm.test('Message mentions suspicious content', () => pm.expect(r.message).to.include('suspicious'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/listings",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Продам авто fuck cheap\",\n  \"description\": \"Нормальне авто, хороший стан\",\n  \"price\": 10000,\n  \"currency\": \"USD\",\n  \"region\": \"Lviv\",\n  \"brandId\": 2,\n  \"modelId\": 6,\n  \"year\": 2018,\n  \"mileage\": 80000\n}"
+            },
+            "description": "Створює оголошення з нецензурним словом → статус PENDING.\nПісля 3 невдалих редагувань → статус INACTIVE, email менеджеру."
+          }
+        },
         {
           "name": "Create Listing (Seller)",
           "event": [
@@ -329,43 +430,20 @@
             "method": "POST",
             "url": "{{base_url}}/listings",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"Toyota Camry 2020 у відмінному стані\",\n  \"description\": \"Авто в чудовому стані, один власник, сервісна книжка\",\n  \"price\": 25000,\n  \"currency\": \"USD\",\n  \"region\": \"Kyiv\",\n  \"brandId\": 1,\n  \"modelId\": 1,\n  \"year\": 2020,\n  \"mileage\": 45000\n}"
             },
             "description": "Створює оголошення як продавець. Чистий заголовок → статус ACTIVE.\nАвтоматично зберігає {{listing_id}}.\nВідповідь: { status: 201, message: \"...\", data: { id, title, price, priceUAH, priceUSD, priceEUR, usdRate, eurRate, status: 'active', ... } }"
-          }
-        },
-        {
-          "name": "Create Listing with Profanity (test)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r = pm.response.json();",
-                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
-                  "pm.test('Status is pending', () => pm.expect(r.data.status).to.eql('pending'));",
-                  "pm.test('Message mentions suspicious content', () => pm.expect(r.message).to.include('suspicious'));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "url": "{{base_url}}/listings",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Продам авто fuck cheap\",\n  \"description\": \"Нормальне авто, хороший стан\",\n  \"price\": 10000,\n  \"currency\": \"USD\",\n  \"region\": \"Lviv\",\n  \"brandId\": 2,\n  \"modelId\": 6,\n  \"year\": 2018,\n  \"mileage\": 80000\n}"
-            },
-            "description": "Створює оголошення з нецензурним словом → статус PENDING.\nПісля 3 невдалих редагувань → статус INACTIVE, email менеджеру."
           }
         },
         {
@@ -385,14 +463,43 @@
             "method": "GET",
             "url": {
               "raw": "{{base_url}}/listings?region=Kyiv",
-              "host": ["{{base_url}}"],
-              "path": ["listings"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "listings"
+              ],
               "query": [
-                { "key": "brandId", "value": "1", "disabled": true, "description": "Фільтр по бренду" },
-                { "key": "modelId", "value": "1", "disabled": true, "description": "Фільтр по моделі" },
-                { "key": "region", "value": "Kyiv", "disabled": false, "description": "Фільтр по регіону" },
-                { "key": "minPrice", "value": "5000", "disabled": true, "description": "Мінімальна ціна (UAH)" },
-                { "key": "maxPrice", "value": "30000", "disabled": true, "description": "Максимальна ціна (UAH)" }
+                {
+                  "key": "brandId",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Фільтр по бренду"
+                },
+                {
+                  "key": "modelId",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Фільтр по моделі"
+                },
+                {
+                  "key": "region",
+                  "value": "Kyiv",
+                  "disabled": false,
+                  "description": "Фільтр по регіону"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "5000",
+                  "disabled": true,
+                  "description": "Мінімальна ціна (UAH)"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "30000",
+                  "disabled": true,
+                  "description": "Максимальна ціна (UAH)"
+                }
               ]
             },
             "description": "Повертає всі активні оголошення. Підтримує фільтри: brandId, modelId, region, minPrice, maxPrice."
@@ -433,7 +540,12 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/listings/my",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "description": "Повертає всі оголошення поточного продавця."
           }
         },
@@ -454,8 +566,14 @@
             "method": "PATCH",
             "url": "{{base_url}}/listings/{{listing_id}}",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -480,7 +598,12 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/listings/pending",
-            "header": [{ "key": "Authorization", "value": "Bearer {{manager_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
             "description": "Повертає всі оголошення зі статусом PENDING.\nПотребує {{manager_token}} — виконай спочатку: Create Manager → Login as Manager."
           }
         },
@@ -500,7 +623,12 @@
           "request": {
             "method": "PATCH",
             "url": "{{base_url}}/listings/{{listing_id}}/activate",
-            "header": [{ "key": "Authorization", "value": "Bearer {{manager_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
             "description": "Менеджер вручну активує PENDING оголошення."
           }
         },
@@ -520,7 +648,12 @@
           "request": {
             "method": "PATCH",
             "url": "{{base_url}}/listings/{{listing_id}}/deactivate",
-            "header": [{ "key": "Authorization", "value": "Bearer {{manager_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
             "description": "Менеджер деактивує активне оголошення."
           }
         },
@@ -539,7 +672,12 @@
           "request": {
             "method": "DELETE",
             "url": "{{base_url}}/listings/{{listing_id}}",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "description": "Видаляє оголошення. Дозволено: власник, менеджер або адмін."
           }
         }
@@ -565,7 +703,12 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/users/me",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "description": "Повертає профіль поточного авторизованого користувача."
           }
         },
@@ -585,7 +728,12 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/users",
-            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
             "description": "Повертає всіх користувачів. Потребує admin або manager токен."
           }
         },
@@ -611,8 +759,14 @@
             "method": "POST",
             "url": "{{base_url}}/users/manager",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -637,7 +791,12 @@
           "request": {
             "method": "PATCH",
             "url": "{{base_url}}/users/{{seller_id}}/upgrade",
-            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
             "description": "Підвищує акаунт до Premium. Premium дає: необмежені оголошення + статистика.\n{{seller_id}} зберігається автоматично після Register Seller."
           }
         },
@@ -656,7 +815,12 @@
           "request": {
             "method": "PATCH",
             "url": "{{base_url}}/users/{{seller_id}}/ban",
-            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
             "description": "Банить користувача. Заблокований юзер не може логінитись."
           }
         },
@@ -675,7 +839,12 @@
           "request": {
             "method": "PATCH",
             "url": "{{base_url}}/users/{{seller_id}}/unban",
-            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
             "description": "Розбанює користувача. Потребує Admin або Manager токен."
           }
         }
@@ -708,7 +877,12 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/statistics/listings/{{listing_id}}",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "description": "Повертає статистику оголошення для Premium продавця:\n- views: { total, day, week, month }\n- avgPriceRegion: { UAH, USD, EUR, region }\n- avgPriceUkraine: { UAH, USD, EUR }\n\nПотребує Premium акаунт. Виконай 'Upgrade to Premium' спочатку."
           }
         }
